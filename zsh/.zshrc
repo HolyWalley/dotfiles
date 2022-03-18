@@ -106,3 +106,5 @@ alias gc='git checkout'
 alias vim='nvim'
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+. $HOME/.asdf/asdf.sh

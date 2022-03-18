@@ -1,4 +1,4 @@
-call plug#begin('~/.vim/plugged')
+call plug#begin('~/.config/nvim/plugged')
 Plug 'morhetz/gruvbox' " colorscheme
 
 Plug 'itchyny/lightline.vim' " statusline
@@ -24,6 +24,8 @@ Plug 'editorconfig/editorconfig-vim' " Allows store code-style configs per proje
 Plug 'mg979/vim-visual-multi', { 'branch': 'master' } " Multicursor plugin
 
 Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
+
+Plug 'neovim/nvim-lspconfig'
 
 " Should definetelly take a look.
 " Plug 'SirVer/ultisnips' " Snippers
