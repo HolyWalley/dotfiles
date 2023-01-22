@@ -1,0 +1,4 @@
+--ignore-directory=node_modules/
+--ignore-directory=logs/
+--ignore-directory=log/
+--ignore-directory=coverage/

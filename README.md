@@ -9,3 +9,4 @@
 8. Run install.sh
 9. Run :checkhealth in vim and install all needed dependencies through asdf
 10. Install [patched font](https://www.nerdfonts.com/font-downloads)
+11. Install [fzf](https://github.com/ibhagwan/fzf-lua)

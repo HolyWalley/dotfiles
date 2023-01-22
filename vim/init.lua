@@ -4,6 +4,9 @@ local execute = vim.api.nvim_command
 local fn = vim.fn
 local set = vim.opt
 local map = vim.api.nvim_set_keymap
+local autocmd = vim.api.nvim_create_autocmd
+
+vim.g.mapleader = ','
 
 -- ensure that packer is installed
 local install_path = fn.stdpath('data')..'/site/pack/packer/opt/packer.nvim'
@@ -15,6 +18,17 @@ vim.cmd('packadd packer.nvim')
 
 local packer = require'packer'
 local util = require'packer.util'
+
+local nmap = function(keys, func, desc)
+  if desc then
+    desc = 'LSP: ' .. desc
+  end
+
+  vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
+end
+
+-- Use Esc to exit from terminal mode
+map('t', '<Esc>', "<C-\\><C-n>", { noremap = true, silent = true })
 
 packer.init({
   package_root = util.join_paths(vim.fn.stdpath('data'), 'site', 'pack')
@@ -28,20 +42,29 @@ packer.startup(function()
   use 'tpope/vim-surround'
   use 'tpope/vim-repeat'
   use 'tpope/vim-fugitive'
+  use 'tpope/vim-endwise'
   use 'easymotion/vim-easymotion'
   use 'junegunn/vim-easy-align'
+  use 'kyazdani42/nvim-web-devicons'
   use {
-	  'nvim-lualine/lualine.nvim',
-	  requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+    'nvim-lualine/lualine.nvim',
+    requires = { 'kyazdani42/nvim-web-devicons', opt = true }
   } -- statusline
 
-  use { 'ibhagwan/fzf-lua',
-    -- optional for icon support
-    requires = { 'kyazdani42/nvim-web-devicons' }
-  }
+  -- use { 'ibhagwan/fzf-lua',
+  --   -- optional for icon support
+  --   requires = { 'kyazdani42/nvim-web-devicons' }
+  -- }
+
+  -- Fuzzy Finder (files, lsp, etc)
+  use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
+
+  -- Fuzzy Finder Algorithm which requires local dependencies to be built. Only load if `make` is available
+  use { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make', cond = vim.fn.executable 'make' == 1 }
+
   use 'neovim/nvim-lspconfig'
 
-  use 'mileszs/ack.vim'
+  -- use 'mileszs/ack.vim'
   use { 'mg979/vim-visual-multi', branch = 'master' } -- Multicursor plugin
 
   use {
@@ -59,18 +82,30 @@ packer.startup(function()
 
   use 'hrsh7th/cmp-vsnip'
   use 'hrsh7th/vim-vsnip'
+
+  use 'akinsho/toggleterm.nvim'
+  use 'slim-template/vim-slim'
+  use 'editorconfig/editorconfig-vim'
+
+  use 'evanleck/vim-svelte'
+
+  use 'nvim-treesitter/nvim-treesitter'
+
+  use 'hashivim/vim-terraform'
 end)
 
 -- Do not check for perl provider
 vim.g['loaded_perl_provider'] = 0
 vim.cmd('language en_US')
-vim.g.gruvbox_flat_style = "hard"
+vim.g.gruvbox_flat_style = "dark"
 
 vim.cmd[[colorscheme gruvbox-flat]]
 
 set.exrc = true -- loads project specific vim config
 set.number = true
 set.relativenumber = true
+set.wrap = false
+set.cursorline = true
 
 -- Indentation and tabbing
 set.autoindent=true
@@ -85,7 +120,7 @@ set.tabstop=2
 -- Persistent undo
 set.undolevels=1000                     -- How many undos
 set.undoreload=10000                    -- number of lines to save for undo
-set.undodir='/Users/yakaukrasnou/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
+set.undodir='~/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
 set.undofile=true
 
 -- Search settings
@@ -96,9 +131,6 @@ set.incsearch=true
 set.showmatch=true
 
 set.mouse='a'
-
--- KEYBINDINGS --
-vim.g.mapleader = ','
 
 -- Plugins --
 -- LuaLine - fancy status line
@@ -127,12 +159,13 @@ cmp.setup({
     ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
     ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
     ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
+    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
     ['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
     ['<C-e>'] = cmp.mapping({
       i = cmp.mapping.abort(),
       c = cmp.mapping.close(),
     }),
-    ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    ['<CR>'] = cmp.mapping.confirm({ select = false }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
     ['<Tab>'] = function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
@@ -179,7 +212,7 @@ cmp.setup.cmdline(':', {
 
 -- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').update_capabilities(capabilities)
+capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
 -- LSP CONFIG
 -- Mappings.
@@ -198,6 +231,7 @@ local on_attach = function(client, bufnr)
 
   -- Mappings.
   -- See `:help vim.lsp.*` for documentation on any of the below functions
+  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
@@ -209,39 +243,68 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>D', '<cmd>lua vim.lsp.buf.type_definition()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>rn', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>ca', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gr', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
 end
 
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
-local servers = { 'solargraph', 'denols', 'dockerls', 'yamlls', 'tailwindcss' }
+local servers = { 'solargraph', 'denols', 'dockerls', 'yamlls', 'rust_analyzer', 'svelte', 'terraformls', 'tflint' }
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
-    flags = {
-      -- This will be the default in neovim 0.7+
-      debounce_text_changes = 150,
-    },
+    -- flags = {
+    --   -- This will be the default in neovim 0.7+
+    --   debounce_text_changes = 150,
+    -- },
     capabilities = capabilities
   }
 end
 
+require'lspconfig'.eslint.setup{
+  packageManager = 'yarn',
+    capabilities = capabilities
+}
+
 -- FZF
-map('n', '<c-F>', "<cmd>lua require('fzf-lua').files()<CR>", { noremap = true, silent = true })
-map('n', '<c-E>', "<cmd>lua require('fzf-lua').buffers()<CR>", { noremap = true, silent = true })
+-- map('n', '<c-F>', "<cmd>lua require('fzf-lua').files()<CR>", { noremap = true, silent = true })
+-- map('n', '<c-E>', "<cmd>lua require('fzf-lua').buffers()<CR>", { noremap = true, silent = true })
 
--- Ack.vim
-vim.cmd 'cnoreabbrev ag Ack! -Q'
-vim.cmd 'cnoreabbrev aG Ack! -Q'
-vim.cmd 'cnoreabbrev Ag Ack! -Q'
-vim.cmd 'cnoreabbrev AG Ack! -Q'
-vim.cmd 'cnoreabbrev F Ack! -Q'
-vim.cmd 'cnoreabbrev f Ack! -Q'
+-- [[ Configure Telescope ]]
+-- See `:help telescope` and `:help telescope.setup()`
+require('telescope').setup {
+  defaults = {
+    mappings = {
+      i = {
+        ['<C-u>'] = false,
+        ['<C-d>'] = false,
+      },
+    },
+  },
+}
 
-if fn.executable('ag') == 1 then
-  vim.api.nvim_set_var('ackprg', 'ag --vimgrep --smart-case')
-end
+-- Enable telescope fzf native, if installed
+pcall(require('telescope').load_extension, 'fzf')
+
+-- See `:help telescope.builtin`
+vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
+vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
+vim.keymap.set('n', '<leader>/', function()
+  -- You can pass additional configuration to telescope to change theme, layout, etc.
+  require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+    winblend = 10,
+    previewer = false,
+  })
+end, { desc = '[/] Fuzzily search in current buffer]' })
+
+vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
+vim.keymap.set('n', '<leader>sb', require('telescope.builtin').buffers, { desc = 'Show search buffers' })
+vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
+vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
+vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
+vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
+
+-- Copy to clipboard mapping
+vim.keymap.set('v', '<Space>y', '"*y', {})
 
 -- Easymotion
 -- Use uppercase target labels and type as a lower case
@@ -262,4 +325,55 @@ map('n', '<Leader>h', '<Plug>(easymotion-linebackward)', {})
 vim.g.nosplitright = false
 require'nvim-tree'.setup {}
 
-map('n', '<Leader>g', '<cmd>NvimTreeToggle<CR>', opts)
+map('n', '<Leader>g', '<cmd>NvimTreeFindFileToggle<CR>', opts)
+
+set.encoding='utf-8'
+
+vim.opt.list = true
+
+vim.opt.listchars = {
+  trail = '~',
+  tab = '>-',
+}
+
+require'toggleterm'.setup{
+  size = 15,
+  open_mapping = [[<Leader>t]],
+}
+
+-- More info about toggleterm internals here
+-- https://github.com/akinsho/toggleterm.nvim/blob/93a7c59230f5dad60061318fefec35d431dec67f/lua/toggleterm.lua
+function _G.run_spec()
+  -- local current_file_path = vim.fn.expand('%')
+  -- local current_file_path = vim.fn.finddir('.git/..', vim.fn.expand('%:p:h'))
+  local current_file_path = vim.fn.fnamemodify(vim.fn.expand("%"), ":~:.")
+
+  -- TODO: skip if not _spec or /specs/ file
+
+  -- Beginning of the selection: line number, column number
+  local b_line, b_col
+  -- Window number from where we are calling the function (needed so we can get back to it automatically)
+  local current_window = vim.api.nvim_get_current_win()
+
+  b_line, b_col = unpack(vim.api.nvim_win_get_cursor(0))
+
+  require'toggleterm'.exec('bundle exec rspec ~/' .. current_file_path, 1)
+
+  -- Jump back with the cursor where we were at the begiining of the selection
+  vim.api.nvim_set_current_win(current_window)
+  vim.api.nvim_win_set_cursor(current_window, { b_line, b_col })
+end
+map('n', '<Leader>rs', ':lua run_spec()<CR>', {})
+
+map('n', '<leader>ti', ':!terraform init<CR>', opts)
+map('n', '<leader>tv', ':!terraform validate<CR>', opts)
+map('n', '<leader>tp', ':!terraform plan<CR>', opts)
+map('n', '<leader>taa', ':!terraform apply -auto-approve<CR>', opts)
+
+-- Load skeletons on file create based on file extension
+for _, ext in pairs({ 'sh', 'rb' }) do
+  autocmd( { "BufNewFile" }, {
+    pattern = { "*." .. ext },
+    command = [[0r ~/.config/nvim/skeletons/skeleton.]] .. ext,
+  })
+end
