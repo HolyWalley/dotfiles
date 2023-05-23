@@ -5,6 +5,7 @@
 export ZSH="$HOME/.oh-my-zsh"
 export LDFLAGS="-L/usr/local/opt/openssl/lib"
 export CPPFLAGS="-I/usr/local/opt/openssl/include"
+export JAVA_HOME="~/.asdf/installs/java/openjdk-20/bin/java"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -109,3 +110,4 @@ alias vim='nvim'
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 . /usr/local/opt/asdf/libexec/asdf.sh
+[[ $commands[kubectl] ]] && source <(kubectl completion zsh)
