@@ -94,6 +94,8 @@ packer.startup(function()
   use 'hashivim/vim-terraform'
 
   use 'github/copilot.vim'
+
+  use { 'Dhanus3133/LeetBuddy.nvim', requires = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' } }
 end)
 
 -- Do not check for perl provider
@@ -141,6 +143,12 @@ require('lualine').setup {
     theme = 'gruvbox-flat'
   }
 }
+
+-- LeetBuddy
+require('leetbuddy').setup {
+  language = "rb",
+}
+-- map('n', '<Leader>lq', '<cmd>LBQuestions<CR>', opts)
 
 -- nvim-cmp
 set.completeopt=menu,menuone,noselect
