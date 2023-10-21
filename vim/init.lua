@@ -252,9 +252,25 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', opts)
 end
 
+-- vim.print(vim.lsp.buf)
+
+require('lspconfig').ruby_ls.setup {
+  on_attach = function(client, bufnr)
+    -- go to definition
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'gd', '<cmd>lua vim.lsp.buf.definition()<CR>', opts)
+    -- hover
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+    -- document symbol
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>ds', '<cmd>lua vim.lsp.buf.document_symbol()<CR>', opts)
+    -- format
+    vim.api.nvim_buf_set_keymap(bufnr, 'n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
+  end,
+  capabilities = capabilities
+}
+
 -- Use a loop to conveniently call 'setup' on multiple servers and
 -- map buffer local keybindings when the language server attaches
-local servers = { 'solargraph', 'denols' }
+local servers = { 'denols' }
 for _, lsp in pairs(servers) do
   require('lspconfig')[lsp].setup {
     on_attach = on_attach,
