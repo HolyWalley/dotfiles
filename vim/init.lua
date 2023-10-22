@@ -84,18 +84,14 @@ packer.startup(function()
   use 'hrsh7th/vim-vsnip'
 
   use 'akinsho/toggleterm.nvim'
-  use 'slim-template/vim-slim'
   use 'editorconfig/editorconfig-vim'
-
-  use 'evanleck/vim-svelte'
-
-  use 'nvim-treesitter/nvim-treesitter'
-
-  use 'hashivim/vim-terraform'
 
   use 'github/copilot.vim'
 
+  -- LetCode
   use { 'Dhanus3133/LeetBuddy.nvim', requires = { 'nvim-lua/plenary.nvim', 'nvim-telescope/telescope.nvim' } }
+  -- Folding plugin, zc, zo, zr, zm
+  use {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'}
 end)
 
 -- Do not check for perl provider
@@ -135,6 +131,13 @@ set.incsearch=true
 set.showmatch=true
 
 set.mouse='a'
+
+-- Folding
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
+require('ufo').setup()
 
 -- Plugins --
 -- LuaLine - fancy status line
@@ -217,6 +220,12 @@ cmp.setup.cmdline(':', {
 -- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
+-- Tell the server the capability of foldingRange
+capabilities.textDocument.foldingRange = {
+  dynamicRegistration = false,
+  lineFoldingOnly = true
+}
 
 -- LSP CONFIG
 -- Mappings.
@@ -408,11 +417,6 @@ function _G.run_rubocop()
   vim.api.nvim_win_set_cursor(current_window, { b_line, b_col })
 end
 map('n', '<Leader>rr', ':lua run_rubocop()<CR>', {})
-
-map('n', '<leader>ti', ':!terraform init<CR>', opts)
-map('n', '<leader>tv', ':!terraform validate<CR>', opts)
-map('n', '<leader>tp', ':!terraform plan<CR>', opts)
-map('n', '<leader>taa', ':!terraform apply -auto-approve<CR>', opts)
 
 -- Load skeletons on file create based on file extension
 for _, ext in pairs({ 'sh', 'rb' }) do
