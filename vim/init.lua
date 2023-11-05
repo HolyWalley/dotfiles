@@ -51,11 +51,6 @@ packer.startup(function()
     requires = { 'kyazdani42/nvim-web-devicons', opt = true }
   } -- statusline
 
-  -- use { 'ibhagwan/fzf-lua',
-  --   -- optional for icon support
-  --   requires = { 'kyazdani42/nvim-web-devicons' }
-  -- }
-
   -- Fuzzy Finder (files, lsp, etc)
   use { 'nvim-telescope/telescope.nvim', branch = '0.1.x', requires = { 'nvim-lua/plenary.nvim' } }
 
@@ -96,6 +91,7 @@ end)
 
 -- Do not check for perl provider
 vim.g['loaded_perl_provider'] = 0
+vim.g['loaded_python3_provider'] = 0
 vim.cmd('language en_US')
 vim.g.gruvbox_flat_style = "dark"
 
@@ -120,7 +116,7 @@ set.tabstop=2
 -- Persistent undo
 set.undolevels=1000                     -- How many undos
 set.undoreload=10000                    -- number of lines to save for undo
-set.undodir='/Users/yakaukrasnou/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
+set.undodir='/Users/personal/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
 set.undofile=true
 
 -- Search settings
@@ -297,10 +293,6 @@ require'lspconfig'.eslint.setup{
   packageManager = 'yarn',
     capabilities = capabilities
 }
-
--- FZF
--- map('n', '<c-F>', "<cmd>lua require('fzf-lua').files()<CR>", { noremap = true, silent = true })
--- map('n', '<c-E>', "<cmd>lua require('fzf-lua').buffers()<CR>", { noremap = true, silent = true })
 
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
