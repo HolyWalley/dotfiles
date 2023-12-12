@@ -1,5 +1,5 @@
 local vim = vim
-local copilot_enabled = true
+local copilot_enabled = false
 
 local execute = vim.api.nvim_command
 local fn = vim.fn
@@ -39,7 +39,8 @@ packer.init({
 packer.startup(function()
   local use = use
 
-  use 'eddyekofo94/gruvbox-flat.nvim'
+  -- use 'eddyekofo94/gruvbox-flat.nvim'
+  use 'folke/tokyonight.nvim'
   use 'tpope/vim-surround'
   use 'tpope/vim-repeat'
   use 'tpope/vim-fugitive'
@@ -82,7 +83,6 @@ packer.startup(function()
   use 'akinsho/toggleterm.nvim'
   use 'editorconfig/editorconfig-vim'
 
-  -- use 'github/copilot.vim'
   use { "zbirenbaum/copilot.lua" }
 
   -- LetCode
@@ -106,9 +106,11 @@ require("copilot").setup({
 vim.g['loaded_perl_provider'] = 0
 vim.g['loaded_python3_provider'] = 0
 vim.cmd('language en_US')
-vim.g.gruvbox_flat_style = "dark"
+-- vim.g.gruvbox_flat_style = "dark"
 
-vim.cmd[[colorscheme gruvbox-flat]]
+-- vim.cmd[[colorscheme gruvbox-flat]]
+
+vim.cmd('colorscheme tokyonight')
 
 set.exrc = true -- loads project specific vim config
 set.number = true
@@ -129,7 +131,7 @@ set.tabstop=2
 -- Persistent undo
 set.undolevels=1000                     -- How many undos
 set.undoreload=10000                    -- number of lines to save for undo
-set.undodir='/Users/personal/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
+set.undodir='/Users/work/.config/nvim/undo'       -- Allow undoes to persist even after a file is closed
 set.undofile=true
 
 -- Search settings
@@ -152,7 +154,7 @@ require('ufo').setup()
 -- LuaLine - fancy status line
 require('lualine').setup {
   options = {
-    theme = 'gruvbox-flat'
+    theme = 'tokyonight'
   }
 }
 
@@ -177,7 +179,6 @@ cmp.setup({
   mapping = {
     ['<C-b>'] = cmp.mapping(cmp.mapping.scroll_docs(-4), { 'i', 'c' }),
     ['<C-f>'] = cmp.mapping(cmp.mapping.scroll_docs(4), { 'i', 'c' }),
-    ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
     ['<C-Space>'] = cmp.mapping(cmp.mapping.complete(), { 'i', 'c' }),
     ['<C-y>'] = cmp.config.disable, -- Specify `cmp.config.disable` if you want to remove the default `<C-y>` mapping.
     ['<C-e>'] = cmp.mapping({
@@ -263,12 +264,11 @@ require('lspconfig').ruby_ls.setup {
 
 require'lspconfig'.stimulus_ls.setup{}
 require'lspconfig'.tailwindcss.setup {}
-require'lspconfig'.standardrb.setup{}
 
-require'lspconfig'.eslint.setup{
-  packageManager = 'yarn',
-    capabilities = capabilities
-}
+-- Unfortunatelly they do not work very good together. As an option
+-- for work setup I do not install standardrb gem
+require'lspconfig'.standardrb.setup{}
+require'lspconfig'.rubocop.setup{}
 
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
@@ -277,8 +277,14 @@ require('telescope').setup {
     mappings = {
       i = {
         ['<C-u>'] = false,
-        ['<C-d>'] = false,
+        ['<c-d>'] = 'delete_buffer',
       },
+    },
+  },
+  pickers = {
+    buffers = {
+      ignore_current_buffer = true,
+      sort_lastused = true,
     },
   },
 }
@@ -357,13 +363,49 @@ function _G.run_spec()
 
   b_line, b_col = unpack(vim.api.nvim_win_get_cursor(0))
 
-  require'toggleterm'.exec('bundle exec rspec ~/' .. current_file_path, 1)
+  require'toggleterm'.exec('bundle exec rspec ' .. current_file_path, 1)
 
   -- Jump back with the cursor where we were at the begiining of the selection
   vim.api.nvim_set_current_win(current_window)
   vim.api.nvim_win_set_cursor(current_window, { b_line, b_col })
 end
 map('n', '<Leader>rs', ':lua run_spec()<CR>', {})
+
+function _G.run_spec_for_line()
+  -- local current_file_path = vim.fn.expand('%')
+  -- local current_file_path = vim.fn.finddir('.git/..', vim.fn.expand('%:p:h'))
+  local current_file_path = vim.fn.fnamemodify(vim.fn.expand("%"), ":~:.")
+
+  -- TODO: skip if not _spec or /specs/ file
+
+  -- Beginning of the selection: line number, column number
+  local b_line, b_col
+  -- Window number from where we are calling the function (needed so we can get back to it automatically)
+  local current_window = vim.api.nvim_get_current_win()
+
+  b_line, b_col = unpack(vim.api.nvim_win_get_cursor(0))
+
+  require'toggleterm'.exec('bundle exec rspec ' .. current_file_path .. ':' .. b_line, 1)
+
+  -- Jump back with the cursor where we were at the begiining of the selection
+  vim.api.nvim_set_current_win(current_window)
+  vim.api.nvim_win_set_cursor(current_window, { b_line, b_col })
+end
+map('n', '<Leader>rl', ':lua run_spec_for_line()<CR>', {})
+
+function _G.open_spec()
+  -- local current_file_path = vim.fn.expand('%')
+  -- local current_file_path = vim.fn.finddir('.git/..', vim.fn.expand('%:p:h'))
+  local current_file_path = vim.fn.fnamemodify(vim.fn.expand("%"), ":~:.")
+
+  -- replace app/ with spec/ and add replace .rb with _spec.rb
+  local spec_file_path = vim.fn.substitute(current_file_path, 'app/', 'spec/', 'g')
+  spec_file_path = vim.fn.substitute(spec_file_path, '.rb', '_spec.rb', 'g')
+
+  -- Open spec file in a new split
+  vim.cmd('vsplit ' .. spec_file_path)
+end
+map('n', 'gs', ':lua open_spec()<CR>', {})
 
 function _G.run_rubocop()
   -- local current_file_path = vim.fn.expand('%')
@@ -379,7 +421,7 @@ function _G.run_rubocop()
 
   b_line, b_col = unpack(vim.api.nvim_win_get_cursor(0))
 
-  require'toggleterm'.exec('bundle exec rubocop ~/' .. current_file_path, 1)
+  require'toggleterm'.exec('bundle exec rubocop ' .. current_file_path, 1)
 
   -- Jump back with the cursor where we were at the begiining of the selection
   vim.api.nvim_set_current_win(current_window)
