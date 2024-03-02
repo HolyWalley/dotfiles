@@ -1,19 +1,36 @@
 #!/bin/sh
 
+USER_PATH="/Users/$(whoami)"
+
 mkdir -p ~/.config
-mkdir -p ~/.config/nvim
-mkdir -p ~/.config/nvim/skeletons
-mkdir -p ~/.ssh
+mkdir -p ~/.config/nvim/lua
+mkdir -p ~/.config/nvim/lua/config
+mkdir -p ~/.config/nvim/lua/plugins
 mkdir -p ~/.config/fish/themes
 
-ln -sf $PWD/tmux/tmux.conf ~/.tmux.conf
 ln -sf $PWD/fish/config.fish ~/.config/fish/config.fish
+ln -sf $PWD/fish/fish_plugins ~/.config/fish/fish_plugins
 ln -sf $PWD/fish/tokyonight_storm.theme ~/.config/fish/themes/tokyonight_storm.theme
-ln -sf $PWD/vim/init.lua ~/.config/nvim/init.lua
-ln -sf $PWD/.ackrc ~/.ackrc
 
-for FILE in $PWD/vim/skeletons/*; do
-  FILE_NAME=`basename $FILE`
+rm -f ~/.config/nvim/init.lua
+ln -sf $PWD/nvim/init.lua ~/.config/nvim/init.lua
 
-  ln -sf $FILE ~/.config/nvim/skeletons/$FILE_NAME
+for file in "$PWD/nvim/lua/config"/*; do
+	# Extract the filename from the path
+	filename=$(basename "$file")
+	target_file="$USER_PATH/.config/nvim/lua/plugins/$filename"
+
+	rm -f "$target_file"
+	# Create a symbolic link in the target directory
+	ln -sf "$file" "$target_file"
+done
+
+for file in "$PWD/nvim/lua/plugins"/*; do
+	# Extract the filename from the path
+	filename=$(basename "$file")
+	target_file="$USER_PATH/.config/nvim/lua/plugins/$filename"
+
+	rm -f "$target_file"
+	# Create a symbolic link in the target directory
+	ln -sf "$file" "$target_file"
 done
