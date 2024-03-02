@@ -15,4 +15,5 @@
 12. Install [go](https://github.com/asdf-community/asdf-golang)
 13. Install [LazyVim](http://www.lazyvim.org/installation)
 13. Run install.sh
-14. Run :LazyHealth
+14. Run fisher update
+15. Run :LazyHealth

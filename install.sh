@@ -8,6 +8,10 @@ mkdir -p ~/.config/nvim/lua/config
 mkdir -p ~/.config/nvim/lua/plugins
 mkdir -p ~/.config/fish/themes
 
+rm -f ~/.config/fish/functions/fish_prompt.fish
+
+rm -f ~/.config/fish/config.fish
+rm -f ~/.config/fish/fish_plugins
 ln -sf $PWD/fish/config.fish ~/.config/fish/config.fish
 ln -sf $PWD/fish/fish_plugins ~/.config/fish/fish_plugins
 ln -sf $PWD/fish/tokyonight_storm.theme ~/.config/fish/themes/tokyonight_storm.theme
