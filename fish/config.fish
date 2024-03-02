@@ -1,5 +1,4 @@
 set -x LANG en_US.UTF-8
-set -x SHELL /bin/bash
 
 source ~/.asdf/asdf.fish
 

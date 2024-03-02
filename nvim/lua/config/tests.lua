@@ -11,7 +11,7 @@ function RunRSpec(current_line)
 
 	print("Running command: " .. command)
 	-- Run the command in a terminal buffer
-	vim.cmd("split term://" .. command)
+	vim.cmd("split term://" .. "sh -c '" .. command .. "'")
 end
 
 -- Function to extract the Go module path from go.mod
@@ -65,7 +65,7 @@ function RunGoTest(current_function)
 
 	print("Running command: " .. command)
 	-- Run the command in a terminal buffer
-	vim.cmd("split term://" .. command)
+	vim.cmd("split term://" .. "sh -c'" .. command .. "'")
 end
 
 -- Function to run tests based on file type
