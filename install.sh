@@ -18,7 +18,7 @@ ln -sf $PWD/nvim/init.lua ~/.config/nvim/init.lua
 for file in "$PWD/nvim/lua/config"/*; do
 	# Extract the filename from the path
 	filename=$(basename "$file")
-	target_file="$USER_PATH/.config/nvim/lua/plugins/$filename"
+	target_file="$USER_PATH/.config/nvim/lua/config/$filename"
 
 	rm -f "$target_file"
 	# Create a symbolic link in the target directory
