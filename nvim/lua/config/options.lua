@@ -5,3 +5,5 @@
 -- Keybindings to run tests based on file type
 vim.api.nvim_set_keymap("n", "<leader>tt", "<cmd>lua RunTests(false)<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>tl", "<cmd>lua RunTests(true)<CR>", { noremap = true, silent = true })
+
+return {}
